@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sama Rata</title>
+<meta name="description" content="Split vacation expenses fairly with your group — no accounts, just a link.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app" class="app-shell">
+
+  <div id="status-banner" class="status-banner" role="status" aria-live="polite" hidden>
+    <span id="status-banner-message" class="status-banner-message"></span>
+    <button type="button" id="status-banner-dismiss" class="status-banner-dismiss" aria-label="Dismiss message">&times;</button>
+  </div>
+
+  <section id="screen-start" class="screen screen-start is-hidden" aria-labelledby="screen-start-heading">
+    <div class="stamp-badge stamp-badge-lg" aria-hidden="true">
+      <span class="stamp-badge-text">Sama&nbsp;Rata</span>
+    </div>
+    <h1 id="screen-start-heading" class="screen-heading">Start a Trip</h1>
+    <p class="screen-tagline">Split vacation costs fairly with your group. No sign-up — just a link you share.</p>
+
+    <form id="form-start-trip" class="ticket-card stack-form" novalidate>
+      <div class="field">
+        <label for="input-start-trip-name">Trip name</label>
+        <input type="text" id="input-start-trip-name" name="name" maxlength="100" placeholder="e.g. Bali 2026" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="input-start-trip-currency">Currency</label>
+        <input type="text" id="input-start-trip-currency" name="currency" maxlength="8" value="RM" required autocomplete="off">
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Start Trip</button>
+    </form>
+  </section>
+
+  <section id="screen-not-found" class="screen screen-not-found is-hidden" aria-labelledby="screen-not-found-heading">
+    <div class="stamp-badge stamp-badge-lg stamp-badge-red" aria-hidden="true">
+      <span class="stamp-badge-text">Not&nbsp;Found</span>
+    </div>
+    <h1 id="screen-not-found-heading" class="screen-heading">Trip Not Found</h1>
+    <p class="screen-tagline">This link doesn't match a trip we know about. It may have been reset, or the link may be incomplete.</p>
+    <button type="button" id="btn-back-to-start" class="btn btn-primary btn-block">Start a New Trip</button>
+  </section>
+
+  <section id="screen-trip" class="screen screen-trip is-hidden" aria-labelledby="trip-name-display">
+    <header class="trip-header">
+      <div class="stamp-badge" id="trip-badge" aria-hidden="true">
+        <span id="trip-name-display" class="stamp-badge-text"></span>
+      </div>
+      <div class="trip-header-meta">
+        <p class="trip-currency-line">Currency: <span id="trip-currency-display" class="trip-currency"></span></p>
+        <div class="trip-header-actions">
+          <button type="button" id="btn-edit-trip" class="icon-button" aria-expanded="false" aria-controls="form-edit-trip" aria-label="Edit trip name and currency">
+            <span aria-hidden="true">&#9998;</span>
+          </button>
+          <button type="button" id="btn-refresh" class="icon-button" aria-label="Refresh trip data">
+            <span aria-hidden="true">&#8635;</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <form id="form-edit-trip" class="edit-trip-form stack-form" hidden novalidate>
+      <div class="field">
+        <label for="input-edit-trip-name">Trip name</label>
+        <input type="text" id="input-edit-trip-name" name="name" maxlength="100" required autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="input-edit-trip-currency">Currency</label>
+        <input type="text" id="input-edit-trip-currency" name="currency" maxlength="8" required autocomplete="off">
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save</button>
+        <button type="button" id="btn-cancel-edit-trip" class="btn btn-secondary">Cancel</button>
+      </div>
+    </form>
+
+    <nav class="tab-bar" role="tablist" aria-label="Trip sections">
+      <button type="button" id="tab-expenses" class="tab-button is-active" role="tab" aria-selected="true" aria-controls="panel-expenses" data-tab="expenses">Expenses</button>
+      <button type="button" id="tab-settle" class="tab-button" role="tab" aria-selected="false" tabindex="-1" aria-controls="panel-settle" data-tab="settle">Settle Up</button>
+    </nav>
+
+    <section id="panel-expenses" class="tab-panel" role="tabpanel" aria-labelledby="tab-expenses" data-panel="expenses">
+
+      <div class="panel-block">
+        <h2 class="panel-heading">Members</h2>
+        <ul id="member-chip-list" class="chip-list"></ul>
+        <p id="member-chip-list-empty" class="empty-note" hidden>No members yet — add the first one below.</p>
+        <form id="form-add-member" class="inline-form">
+          <label for="input-member-name" class="sr-only">Member name</label>
+          <input type="text" id="input-member-name" name="name" maxlength="60" placeholder="Add a member" autocomplete="off" required>
+          <button type="submit" class="btn btn-brass">Add</button>
+        </form>
+      </div>
+
+      <div class="panel-block">
+        <h2 class="panel-heading">Add an Expense</h2>
+        <form id="form-add-expense" class="stack-form">
+          <div class="field">
+            <label for="input-expense-description">Description</label>
+            <input type="text" id="input-expense-description" name="description" maxlength="140" placeholder="e.g. Dinner at the night market" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label for="input-expense-amount">Amount</label>
+            <input type="number" id="input-expense-amount" name="amount" inputmode="decimal" step="0.01" min="0.01" placeholder="0.00" required>
+          </div>
+          <div class="field">
+            <label for="select-expense-payer">Paid by</label>
+            <select id="select-expense-payer" name="paid_by_member_id" required></select>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">Add Expense</button>
+        </form>
+      </div>
+
+      <div class="panel-block">
+        <h2 class="panel-heading">Expenses</h2>
+        <ul id="expense-list" class="expense-list"></ul>
+        <p id="expense-list-empty" class="empty-note" hidden>No expenses logged yet.</p>
+      </div>
+
+    </section>
+
+    <section id="panel-settle" class="tab-panel" role="tabpanel" aria-labelledby="tab-settle" data-panel="settle" hidden>
+
+      <div class="panel-block">
+        <h2 class="panel-heading">Fair Share</h2>
+        <p id="settle-summary" class="settle-summary"></p>
+      </div>
+
+      <div class="panel-block">
+        <h2 class="panel-heading">Balances</h2>
+        <ul id="balance-list" class="balance-list"></ul>
+      </div>
+
+      <div class="panel-block">
+        <h2 class="panel-heading">Suggested Transfers</h2>
+        <ul id="transfer-list" class="transfer-list"></ul>
+        <p id="transfer-list-empty" class="empty-note" hidden>Everyone is settled up — no transfers needed.</p>
+      </div>
+
+    </section>
+
+    <div class="panel-block reset-block">
+      <h2 class="panel-heading">Danger Zone</h2>
+      <button type="button" id="btn-reset-trip" class="btn btn-danger">Reset Trip</button>
+      <div id="reset-confirm-panel" class="confirm-panel" hidden>
+        <p>This permanently deletes every member and expense on this trip. The link keeps working, but all data is gone. This cannot be undone.</p>
+        <div class="form-actions">
+          <button type="button" id="btn-reset-confirm" class="btn btn-danger">Yes, Reset Everything</button>
+          <button type="button" id="btn-reset-cancel" class="btn btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </section>
+
+</div>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
