@@ -16,6 +16,13 @@ const participantCheckboxList = document.getElementById('expense-participant-che
 const expenseList = document.getElementById('expense-list');
 const expenseListEmpty = document.getElementById('expense-list-empty');
 
+const addExpensePanel = document.getElementById('add-expense-panel');
+const editExpensePanel = document.getElementById('edit-expense-panel');
+const editDescriptionInput = document.getElementById('input-edit-expense-description');
+const editAmountInput = document.getElementById('input-edit-expense-amount');
+const editPayerSelect = document.getElementById('select-edit-expense-payer');
+const editParticipantCheckboxList = document.getElementById('edit-expense-participant-checkboxes');
+
 const settleSummary = document.getElementById('settle-summary');
 const balanceList = document.getElementById('balance-list');
 const transferList = document.getElementById('transfer-list');
@@ -200,6 +207,13 @@ export function renderExpenseList(appState = state) {
     amount.className = 'expense-amount';
     amount.textContent = formatCents(expense.amount_cents, appState.trip.currency);
 
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'expense-edit';
+    editBtn.dataset.expenseId = String(expense.id);
+    editBtn.setAttribute('aria-label', `Edit expense: ${expense.description}`);
+    editBtn.textContent = '✎';
+
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'expense-delete';
@@ -207,13 +221,64 @@ export function renderExpenseList(appState = state) {
     deleteBtn.setAttribute('aria-label', `Delete expense: ${expense.description}`);
     deleteBtn.textContent = '✕';
 
-    side.append(amount, deleteBtn);
+    side.append(amount, editBtn, deleteBtn);
     li.append(main, side);
     return li;
   });
 
   expenseList.replaceChildren(...rowNodes);
   expenseListEmpty.hidden = expenses.length > 0;
+}
+
+// Swaps the Add Expense panel for a pre-filled Edit Expense panel. Only
+// currently-active members are offered as payer/participant choices — same
+// rule as adding a new expense — so if the expense's original payer or a
+// participant has since been removed, the user has to pick an active
+// replacement before they can save.
+export function openExpenseEditPanel(expense, appState = state) {
+  const activeMembers = appState.members.filter((member) => member.is_active);
+  const currentParticipantIds = new Set(expense.participants.map((p) => p.id));
+
+  editExpensePanel.dataset.expenseId = String(expense.id);
+  editDescriptionInput.value = expense.description;
+  editAmountInput.value = (expense.amount_cents / 100).toFixed(2);
+
+  const payerOptions = activeMembers.map((member) => {
+    const option = document.createElement('option');
+    option.value = String(member.id);
+    option.textContent = member.name;
+    return option;
+  });
+  editPayerSelect.replaceChildren(...payerOptions);
+  if (activeMembers.some((member) => member.id === expense.paid_by_member_id)) {
+    editPayerSelect.value = String(expense.paid_by_member_id);
+  }
+
+  const checkboxRows = activeMembers.map((member) => {
+    const label = document.createElement('label');
+    label.className = 'checkbox-row';
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.dataset.memberId = String(member.id);
+    input.checked = currentParticipantIds.has(member.id);
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = member.name;
+
+    label.append(input, nameSpan);
+    return label;
+  });
+  editParticipantCheckboxList.replaceChildren(...checkboxRows);
+
+  addExpensePanel.hidden = true;
+  editExpensePanel.hidden = false;
+}
+
+export function closeExpenseEditPanel() {
+  editExpensePanel.hidden = true;
+  addExpensePanel.hidden = false;
+  delete editExpensePanel.dataset.expenseId;
 }
 
 export function renderSettleUp(appState = state) {

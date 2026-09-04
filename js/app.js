@@ -4,6 +4,8 @@ import {
   renderTabs,
   showError,
   clearError,
+  openExpenseEditPanel,
+  closeExpenseEditPanel,
 } from './render.js';
 import {
   createTrip,
@@ -12,6 +14,7 @@ import {
   addMember,
   removeMember,
   addExpense,
+  updateExpense,
   deleteExpense,
   resetTrip,
 } from './api.js';
@@ -42,6 +45,15 @@ const inputExpenseAmount = document.getElementById('input-expense-amount');
 const selectExpensePayer = document.getElementById('select-expense-payer');
 const participantCheckboxList = document.getElementById('expense-participant-checkboxes');
 const participantError = document.getElementById('expense-participant-error');
+
+const formEditExpense = document.getElementById('form-edit-expense');
+const editExpensePanel = document.getElementById('edit-expense-panel');
+const inputEditExpenseDescription = document.getElementById('input-edit-expense-description');
+const inputEditExpenseAmount = document.getElementById('input-edit-expense-amount');
+const selectEditExpensePayer = document.getElementById('select-edit-expense-payer');
+const editParticipantCheckboxList = document.getElementById('edit-expense-participant-checkboxes');
+const editParticipantError = document.getElementById('edit-expense-participant-error');
+const btnCancelEditExpense = document.getElementById('btn-cancel-edit-expense');
 
 const expenseList = document.getElementById('expense-list');
 
@@ -322,6 +334,47 @@ formAddExpense.addEventListener('submit', async (e) => {
   });
 });
 
+selectEditExpensePayer.addEventListener('change', () => {
+  const checkbox = editParticipantCheckboxList.querySelector(
+    `input[data-member-id="${selectEditExpensePayer.value}"]`
+  );
+  if (checkbox) checkbox.checked = true;
+});
+
+btnCancelEditExpense.addEventListener('click', () => {
+  closeExpenseEditPanel();
+});
+
+formEditExpense.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const expenseId = Number(editExpensePanel.dataset.expenseId);
+  const description = inputEditExpenseDescription.value.trim();
+  const amount = Number(inputEditExpenseAmount.value);
+  const paidByMemberId = Number(selectEditExpensePayer.value);
+  const participantIds = Array.from(
+    editParticipantCheckboxList.querySelectorAll('input[type="checkbox"]:checked')
+  ).map((input) => Number(input.dataset.memberId));
+
+  editParticipantError.hidden = participantIds.length > 0;
+  if (!expenseId || !description || !Number.isFinite(amount) || amount <= 0 || !paidByMemberId) {
+    return;
+  }
+  if (participantIds.length === 0) {
+    return;
+  }
+
+  const submitBtn = formEditExpense.querySelector('button[type="submit"]');
+  await runMutation(submitBtn, async () => {
+    try {
+      await updateExpense(state.slug, expenseId, { description, amount, paidByMemberId, participantIds });
+      closeExpenseEditPanel();
+      await refreshTrip();
+    } catch (err) {
+      reportError(err.message);
+    }
+  });
+});
+
 // Expense delete uses an inline two-step confirm (see .expense-row.is-confirming
 // / .expense-confirm-actions in style.css), built here since render.js's list
 // render only draws the initial delete button.
@@ -356,6 +409,14 @@ function cancelExpenseDeleteConfirm(cancelBtn) {
 }
 
 expenseList.addEventListener('click', (e) => {
+  const editBtn = e.target.closest('.expense-edit');
+  if (editBtn) {
+    const expenseId = Number(editBtn.dataset.expenseId);
+    const expense = state.expenses.find((exp) => exp.id === expenseId);
+    if (expense) openExpenseEditPanel(expense);
+    return;
+  }
+
   const deleteBtn = e.target.closest('.expense-delete');
   if (deleteBtn) {
     beginExpenseDeleteConfirm(deleteBtn);

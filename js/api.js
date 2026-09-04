@@ -64,6 +64,20 @@ export async function addExpense(slug, { description, amount, paidByMemberId, pa
     });
 }
 
+export async function updateExpense(slug, expenseId, { description, amount, paidByMemberId, participantIds }) {
+    return apiCall('api/expense_update.php', {
+        method: 'POST',
+        body: {
+            slug,
+            expense_id: expenseId,
+            description,
+            amount,
+            paid_by_member_id: paidByMemberId,
+            participant_member_ids: participantIds,
+        },
+    });
+}
+
 export async function deleteExpense(slug, expenseId) {
     return apiCall('api/expense_delete.php', { method: 'POST', body: { slug, expense_id: expenseId } });
 }

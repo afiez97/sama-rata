@@ -646,6 +646,7 @@ select:focus {
   white-space: nowrap;
 }
 
+.expense-edit,
 .expense-delete {
   width: var(--tap);
   height: var(--tap);
@@ -653,8 +654,21 @@ select:focus {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--stamp-red);
   border: 2px solid transparent;
+  flex-shrink: 0;
+}
+
+.expense-edit {
+  color: var(--airmail-blue);
+}
+
+.expense-edit:hover {
+  background: rgba(61, 90, 128, 0.12);
+  border-color: var(--airmail-blue);
+}
+
+.expense-delete {
+  color: var(--stamp-red);
 }
 
 .expense-delete:hover {

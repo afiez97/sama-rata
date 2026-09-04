@@ -98,7 +98,7 @@
         </form>
       </div>
 
-      <div class="panel-block">
+      <div id="add-expense-panel" class="panel-block">
         <h2 class="panel-heading">Add an Expense</h2>
         <form id="form-add-expense" class="stack-form">
           <div class="field">
@@ -119,6 +119,33 @@
             <p id="expense-participant-error" class="field-error" hidden>Tick at least one person to split this with.</p>
           </fieldset>
           <button type="submit" class="btn btn-primary btn-block">Add Expense</button>
+        </form>
+      </div>
+
+      <div id="edit-expense-panel" class="panel-block" hidden>
+        <h2 class="panel-heading">Edit Expense</h2>
+        <form id="form-edit-expense" class="stack-form">
+          <div class="field">
+            <label for="input-edit-expense-description">Description</label>
+            <input type="text" id="input-edit-expense-description" name="description" maxlength="140" autocomplete="off" required>
+          </div>
+          <div class="field">
+            <label for="input-edit-expense-amount">Amount</label>
+            <input type="number" id="input-edit-expense-amount" name="amount" inputmode="decimal" step="0.01" min="0.01" required>
+          </div>
+          <div class="field">
+            <label for="select-edit-expense-payer">Paid by</label>
+            <select id="select-edit-expense-payer" name="paid_by_member_id" required></select>
+          </div>
+          <fieldset class="field">
+            <legend class="field-label">Split between</legend>
+            <div id="edit-expense-participant-checkboxes" class="checkbox-list"></div>
+            <p id="edit-expense-participant-error" class="field-error" hidden>Tick at least one person to split this with.</p>
+          </fieldset>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Save Changes</button>
+            <button type="button" id="btn-cancel-edit-expense" class="btn btn-secondary">Cancel</button>
+          </div>
         </form>
       </div>
 
