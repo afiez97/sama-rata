@@ -29,7 +29,7 @@ Adjust the database/user names and host as needed for your hosting provider — 
 **Already running Sama Rata with real trip data?** `sql/schema.sql` is the full schema for a brand-new install. If you've already deployed an earlier version, don't re-run it — instead apply the incremental migration for the "who needs to pay" feature:
 
 ```bash
-mysql -u your_user -p your_db < sql/migrations/001_add_expense_participants.sql
+mysql -u alhudaDev -p sama-rata < sql/migrations/001_add_expense_participants.sql
 ```
 
 This adds the new `expense_participants` table and backfills every existing expense to match the old "split among everyone" behavior, so your current Settle Up numbers don't change until you start ticking different people on new expenses.
