@@ -1,58 +1,61 @@
 // Pure, DOM-free settlement math. Integer cents only until formatCents.
 
-export function buildParticipants(members, expenses) {
-  const paidByMemberId = new Map();
-  for (const expense of expenses) {
-    const prev = paidByMemberId.get(expense.paid_by_member_id) || 0;
-    paidByMemberId.set(expense.paid_by_member_id, prev + expense.amount_cents);
-  }
+// Splits amountCents across participantIds with a deterministic remainder
+// (sorted by id, first N get the extra cent) so shares always sum to
+// exactly amountCents — no float drift, no missing/duplicated cents.
+function splitExpenseCents(amountCents, participantIds) {
+  const n = participantIds.length;
+  const base = Math.floor(amountCents / n);
+  const remainder = amountCents - base * n;
+  const sortedIds = [...participantIds].sort((a, b) => a - b);
 
-  const participants = [];
-  for (const member of members) {
-    const paidCents = paidByMemberId.get(member.id) || 0;
-    if (member.is_active || paidCents > 0) {
-      participants.push({
-        id: member.id,
-        name: member.name,
-        active: member.is_active,
-        paidCents,
-      });
-    }
-  }
-  return participants;
+  const shareById = new Map();
+  sortedIds.forEach((id, index) => {
+    shareById.set(id, index < remainder ? base + 1 : base);
+  });
+  return shareById;
 }
 
-export function computeSettlement(participants) {
-  if (participants.length === 0) {
-    return { fairShareCents: 0, totalCents: 0, balances: [], transfers: [] };
+// Each expense is split only among the members ticked on it (expense.participants),
+// not the whole trip — so there is no single global "fair share" anymore. A member's
+// balance is what they paid across all expenses minus what they owe across the
+// expenses they're a participant on.
+export function computeSettlement(members, expenses) {
+  const paidCentsById = new Map();
+  const owedCentsById = new Map();
+
+  for (const expense of expenses) {
+    const prevPaid = paidCentsById.get(expense.paid_by_member_id) || 0;
+    paidCentsById.set(expense.paid_by_member_id, prevPaid + expense.amount_cents);
+
+    const participantIds = expense.participants.map((p) => p.id);
+    if (participantIds.length === 0) continue;
+    const shareById = splitExpenseCents(expense.amount_cents, participantIds);
+    for (const [id, share] of shareById) {
+      owedCentsById.set(id, (owedCentsById.get(id) || 0) + share);
+    }
   }
 
-  const totalCents = participants.reduce((sum, p) => sum + p.paidCents, 0);
-  const n = participants.length;
-  const base = Math.floor(totalCents / n);
-  const remainder = totalCents - base * n;
+  const totalCents = expenses.reduce((sum, e) => sum + e.amount_cents, 0);
 
-  const sortedById = [...participants].sort((a, b) => a.id - b.id);
-  const shareCentsById = new Map();
-  sortedById.forEach((p, index) => {
-    shareCentsById.set(p.id, index < remainder ? base + 1 : base);
-  });
-
-  const balances = participants.map((p) => {
-    const shareCents = shareCentsById.get(p.id);
-    return {
-      id: p.id,
-      name: p.name,
-      active: p.active,
-      paidCents: p.paidCents,
-      shareCents,
-      balanceCents: p.paidCents - shareCents,
-    };
-  });
+  const balances = members
+    .filter((m) => m.is_active || paidCentsById.has(m.id) || owedCentsById.has(m.id))
+    .map((m) => {
+      const paidCents = paidCentsById.get(m.id) || 0;
+      const owedCents = owedCentsById.get(m.id) || 0;
+      return {
+        id: m.id,
+        name: m.name,
+        active: m.is_active,
+        paidCents,
+        owedCents,
+        balanceCents: paidCents - owedCents,
+      };
+    });
 
   const transfers = greedySettle(balances);
 
-  return { fairShareCents: base, totalCents, balances, transfers };
+  return { totalCents, balances, transfers };
 }
 
 export function greedySettle(balances) {

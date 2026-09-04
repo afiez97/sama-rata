@@ -131,7 +131,46 @@ function require_int_field(array $body, string $field): int {
     return (int) $raw;
 }
 
-/** Fetches full trip state: trip row, all members, expenses (newest first) with payer name/status. */
+/** Validates a JSON array of whole numbers, returns unique ints. Rejects a non-array, an object, or a non-numeric/non-integer entry with 400. */
+function require_id_array(array $body, string $field): array {
+    $raw = $body[$field] ?? null;
+    if (!is_array($raw) || !array_is_list($raw) || $raw === []) {
+        json_error('invalid_argument', "\"$field\" must be a non-empty array of whole numbers.", 400);
+    }
+    $ids = [];
+    foreach ($raw as $value) {
+        if (!is_numeric($value) || (int) $value != $value) {
+            json_error('invalid_argument', "\"$field\" must contain whole numbers.", 400);
+        }
+        $ids[(int) $value] = true;
+    }
+    return array_keys($ids);
+}
+
+/** Returns [expense_id => [{id, name, is_active}, ...]] for every expense in this trip. */
+function fetch_participants_by_expense(PDO $pdo, array $trip): array {
+    $stmt = $pdo->prepare(
+        'SELECT ep.expense_id, m.id AS member_id, m.name, m.is_active
+         FROM expense_participants ep
+         JOIN members m ON m.id = ep.member_id
+         JOIN expenses e ON e.id = ep.expense_id
+         WHERE e.trip_id = ?
+         ORDER BY m.created_at ASC'
+    );
+    $stmt->execute([$trip['id']]);
+
+    $byExpense = [];
+    foreach ($stmt->fetchAll() as $row) {
+        $byExpense[$row['expense_id']][] = [
+            'id' => (int) $row['member_id'],
+            'name' => $row['name'],
+            'is_active' => (bool) $row['is_active'],
+        ];
+    }
+    return $byExpense;
+}
+
+/** Fetches full trip state: trip row, all members, expenses (newest first) with payer name/status and participants. */
 function fetch_trip_state(PDO $pdo, array $trip): array {
     $stmt = $pdo->prepare('SELECT id, name, is_active FROM members WHERE trip_id = ? ORDER BY created_at ASC');
     $stmt->execute([$trip['id']]);
@@ -147,6 +186,8 @@ function fetch_trip_state(PDO $pdo, array $trip): array {
     );
     $stmt->execute([$trip['id']]);
     $expenses = $stmt->fetchAll();
+
+    $participantsByExpense = fetch_participants_by_expense($pdo, $trip);
 
     return [
         'trip' => [
@@ -168,6 +209,7 @@ function fetch_trip_state(PDO $pdo, array $trip): array {
             'paid_by_name' => $e['paid_by_name'],
             'paid_by_active' => (bool) $e['paid_by_active'],
             'created_at' => $e['created_at'],
+            'participants' => $participantsByExpense[$e['id']] ?? [],
         ], $expenses),
     ];
 }

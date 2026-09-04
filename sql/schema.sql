@@ -34,3 +34,12 @@ CREATE TABLE expenses (
   CONSTRAINT fk_expenses_trip FOREIGN KEY (trip_id) REFERENCES trips (id) ON DELETE CASCADE,
   CONSTRAINT fk_expenses_member FOREIGN KEY (paid_by_member_id) REFERENCES members (id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE expense_participants (
+  expense_id INT UNSIGNED NOT NULL,
+  member_id  INT UNSIGNED NOT NULL,
+  PRIMARY KEY (expense_id, member_id),
+  KEY idx_expense_participants_member (member_id),
+  CONSTRAINT fk_expense_participants_expense FOREIGN KEY (expense_id) REFERENCES expenses (id) ON DELETE CASCADE,
+  CONSTRAINT fk_expense_participants_member FOREIGN KEY (member_id) REFERENCES members (id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

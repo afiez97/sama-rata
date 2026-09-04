@@ -40,6 +40,8 @@ const formAddExpense = document.getElementById('form-add-expense');
 const inputExpenseDescription = document.getElementById('input-expense-description');
 const inputExpenseAmount = document.getElementById('input-expense-amount');
 const selectExpensePayer = document.getElementById('select-expense-payer');
+const participantCheckboxList = document.getElementById('expense-participant-checkboxes');
+const participantError = document.getElementById('expense-participant-error');
 
 const expenseList = document.getElementById('expense-list');
 
@@ -279,20 +281,38 @@ memberChipList.addEventListener('click', (e) => {
   })();
 });
 
+// Auto-ticks the payer as a participant when they're picked, per the app's
+// "the payer counts as one of the people splitting it by default" rule.
+// Doesn't force it to stay ticked — the user can still untick the payer
+// afterward for a case like "Alice paid for a gift only Bob and Carol split".
+selectExpensePayer.addEventListener('change', () => {
+  const checkbox = participantCheckboxList.querySelector(
+    `input[data-member-id="${selectExpensePayer.value}"]`
+  );
+  if (checkbox) checkbox.checked = true;
+});
+
 formAddExpense.addEventListener('submit', async (e) => {
   e.preventDefault();
   const description = inputExpenseDescription.value.trim();
   const amount = Number(inputExpenseAmount.value);
   const paidByMemberId = Number(selectExpensePayer.value);
+  const participantIds = Array.from(
+    participantCheckboxList.querySelectorAll('input[type="checkbox"]:checked')
+  ).map((input) => Number(input.dataset.memberId));
 
+  participantError.hidden = participantIds.length > 0;
   if (!description || !Number.isFinite(amount) || amount <= 0 || !paidByMemberId) {
+    return;
+  }
+  if (participantIds.length === 0) {
     return;
   }
 
   const submitBtn = formAddExpense.querySelector('button[type="submit"]');
   await runMutation(submitBtn, async () => {
     try {
-      await addExpense(state.slug, { description, amount, paidByMemberId });
+      await addExpense(state.slug, { description, amount, paidByMemberId, participantIds });
       inputExpenseDescription.value = '';
       inputExpenseAmount.value = '';
       await refreshTrip();

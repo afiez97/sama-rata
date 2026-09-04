@@ -1,5 +1,5 @@
 import { state } from './state.js';
-import { buildParticipants, computeSettlement, formatCents, balanceLabel } from './settlement.js';
+import { computeSettlement, formatCents, balanceLabel } from './settlement.js';
 
 const screenStart = document.getElementById('screen-start');
 const screenNotFound = document.getElementById('screen-not-found');
@@ -11,6 +11,7 @@ const tripCurrencyDisplay = document.getElementById('trip-currency-display');
 const memberChipList = document.getElementById('member-chip-list');
 const memberChipListEmpty = document.getElementById('member-chip-list-empty');
 const payerSelect = document.getElementById('select-expense-payer');
+const participantCheckboxList = document.getElementById('expense-participant-checkboxes');
 
 const expenseList = document.getElementById('expense-list');
 const expenseListEmpty = document.getElementById('expense-list-empty');
@@ -64,6 +65,7 @@ export function renderApp(appState = state) {
   if (hasTrip) {
     renderTripHeader(appState);
     renderMemberChips(appState);
+    renderExpenseParticipantCheckboxes(appState);
     renderExpenseList(appState);
     renderSettleUp(appState);
     renderTabs(appState);
@@ -120,6 +122,38 @@ export function renderMemberChips(appState = state) {
   }
 }
 
+// Defaults every active member to ticked, but preserves anything the user
+// has manually unticked across incidental re-renders (a mutation elsewhere,
+// or the auto-refresh) so their in-progress selection survives. A member who
+// wasn't present in the previous render (just added) starts ticked.
+export function renderExpenseParticipantCheckboxes(appState = state) {
+  const activeMembers = appState.members.filter((member) => member.is_active);
+
+  const previouslyUnchecked = new Set(
+    Array.from(participantCheckboxList.querySelectorAll('input[type="checkbox"]'))
+      .filter((input) => !input.checked)
+      .map((input) => input.dataset.memberId)
+  );
+
+  const rowNodes = activeMembers.map((member) => {
+    const label = document.createElement('label');
+    label.className = 'checkbox-row';
+
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.dataset.memberId = String(member.id);
+    input.checked = !previouslyUnchecked.has(String(member.id));
+
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = member.name;
+
+    label.append(input, nameSpan);
+    return label;
+  });
+
+  participantCheckboxList.replaceChildren(...rowNodes);
+}
+
 export function renderExpenseList(appState = state) {
   const expenses = appState.expenses;
 
@@ -145,11 +179,18 @@ export function renderExpenseList(appState = state) {
       payer.append(document.createTextNode(' (removed)'));
     }
 
+    const split = document.createElement('span');
+    split.className = 'expense-split';
+    const participantNames = expense.participants.map(
+      (p) => p.name + (p.is_active ? '' : ' (removed)')
+    );
+    split.textContent = `Split: ${participantNames.join(', ')}`;
+
     const date = document.createElement('span');
     date.className = 'expense-date';
     date.textContent = formatDate(expense.created_at);
 
-    meta.append(payer, date);
+    meta.append(payer, split, date);
     main.append(desc, meta);
 
     const side = document.createElement('div');
@@ -177,11 +218,10 @@ export function renderExpenseList(appState = state) {
 
 export function renderSettleUp(appState = state) {
   const currency = appState.trip ? appState.trip.currency : '';
-  const participants = buildParticipants(appState.members, appState.expenses);
-  const settlement = computeSettlement(participants);
+  const settlement = computeSettlement(appState.members, appState.expenses);
 
-  if (participants.length === 0) {
-    settleSummary.textContent = 'Add members and expenses to see the fair share.';
+  if (settlement.balances.length === 0) {
+    settleSummary.textContent = 'Add members and expenses to see who owes what.';
     balanceList.replaceChildren();
     transferList.replaceChildren();
     transferListEmpty.hidden = true;
@@ -190,8 +230,8 @@ export function renderSettleUp(appState = state) {
 
   settleSummary.textContent = '';
   const strong = document.createElement('strong');
-  strong.textContent = formatCents(settlement.fairShareCents, currency);
-  settleSummary.append(document.createTextNode('Each person’s fair share is '), strong, document.createTextNode('.'));
+  strong.textContent = formatCents(settlement.totalCents, currency);
+  settleSummary.append(document.createTextNode('Total spent so far: '), strong, document.createTextNode('.'));
 
   const balanceNodes = settlement.balances.map((balance) => {
     const li = document.createElement('li');

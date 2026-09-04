@@ -1,6 +1,6 @@
 # Sama Rata
 
-A mobile-first web app for splitting group vacation expenses. Anyone in the trip logs what they paid for — no per-item splitting — and the app works out each person's fair share and the minimum number of transfers to settle up.
+A mobile-first web app for splitting group vacation expenses. Anyone in the trip logs what they paid for and who it should be split between, and the app works out each person's balance and the minimum number of transfers to settle up.
 
 No accounts, no login. A trip lives at a link like `https://your-domain.com/?trip=a1b2c3d4e5` — anyone with that link can view and edit the same trip. The link itself is the only access control, so treat it like a shared secret and only send it to people on the trip.
 
@@ -8,8 +8,8 @@ No accounts, no login. A trip lives at a link like `https://your-domain.com/?tri
 
 - **Trip**: a name and a currency symbol (defaults to `RM`, editable).
 - **Members**: the friends on the trip, added/removed as chips. Removing a member is a soft delete — if they've already logged an expense, they stay visible in Settle Up (marked as removed) so the math stays correct; if they never logged anything, they just disappear.
-- **Expenses**: description, amount, and who paid — added to one shared pool, no splitting per item.
-- **Settle Up**: total spent ÷ number of participants = fair share. Each person's balance is what they paid minus their fair share. The app then computes the *minimum* number of "X pays Y" transfers needed to zero everyone out (greedy debtor/creditor matching), not an everyone-pays-everyone matrix.
+- **Expenses**: description, amount, who paid, and a checkbox for each member to tick who it should be split between. All active members are ticked by default (so shared costs like accommodation need no extra taps), and the payer is auto-ticked when picked — untick anyone not involved in that particular expense.
+- **Settle Up**: each person's balance is what they've paid across all expenses minus their share of the expenses they were ticked on — so a member can owe money on one expense and be owed on another, and it all nets out. The app then computes the *minimum* number of "X pays Y" transfers needed to zero everyone out (greedy debtor/creditor matching), not an everyone-pays-everyone matrix.
 - Data isn't live-synced — use the **Refresh** button, or just switch back to the tab (it auto-refreshes on focus).
 - **Reset Trip** clears all expenses and members but keeps the same link alive, so you can reuse it.
 
@@ -25,6 +25,14 @@ mysql -u root -p sama_rata < sql/schema.sql
 ```
 
 Adjust the database/user names and host as needed for your hosting provider — many shared hosts (cPanel etc.) require you to create the database and user through a control panel instead of the command line, then just run `sql/schema.sql` via phpMyAdmin's "Import" tab.
+
+**Already running Sama Rata with real trip data?** `sql/schema.sql` is the full schema for a brand-new install. If you've already deployed an earlier version, don't re-run it — instead apply the incremental migration for the "who needs to pay" feature:
+
+```bash
+mysql -u your_user -p your_db < sql/migrations/001_add_expense_participants.sql
+```
+
+This adds the new `expense_participants` table and backfills every existing expense to match the old "split among everyone" behavior, so your current Settle Up numbers don't change until you start ticking different people on new expenses.
 
 ## 2. Configure the app
 
@@ -91,7 +99,8 @@ js/                    vanilla ES modules (state, api, settlement math, renderin
 api/*.php              PHP + PDO/MySQL backend, one file per endpoint
 api/config.php          your real DB credentials (gitignored, create this yourself)
 api/config.example.php   placeholder credentials, committed as a template
-sql/schema.sql          the three tables: trips, members, expenses
+sql/schema.sql          full schema for a new install: trips, members, expenses, expense_participants
+sql/migrations/          incremental migrations for existing deployments
 ```
 
 ## Security notes

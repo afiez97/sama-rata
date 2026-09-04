@@ -51,10 +51,16 @@ export async function removeMember(slug, memberId) {
     return apiCall('api/member_remove.php', { method: 'POST', body: { slug, member_id: memberId } });
 }
 
-export async function addExpense(slug, { description, amount, paidByMemberId }) {
+export async function addExpense(slug, { description, amount, paidByMemberId, participantIds }) {
     return apiCall('api/expense_add.php', {
         method: 'POST',
-        body: { slug, description, amount, paid_by_member_id: paidByMemberId },
+        body: {
+            slug,
+            description,
+            amount,
+            paid_by_member_id: paidByMemberId,
+            participant_member_ids: participantIds,
+        },
     });
 }
 

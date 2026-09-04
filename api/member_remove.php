@@ -19,8 +19,13 @@ try {
     $stmt = $pdo->prepare('UPDATE members SET is_active = 0 WHERE id = ? AND trip_id = ?');
     $stmt->execute([$memberId, $trip['id']]);
 
-    $stmt = $pdo->prepare('SELECT COUNT(*) FROM expenses WHERE paid_by_member_id = ? AND trip_id = ?');
-    $stmt->execute([$memberId, $trip['id']]);
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(DISTINCT e.id)
+         FROM expenses e
+         LEFT JOIN expense_participants ep ON ep.expense_id = e.id AND ep.member_id = ?
+         WHERE e.trip_id = ? AND (e.paid_by_member_id = ? OR ep.member_id IS NOT NULL)'
+    );
+    $stmt->execute([$memberId, $trip['id'], $memberId]);
     $expenseCount = (int) $stmt->fetchColumn();
 
     json_response(true, ['member_id' => $memberId, 'expense_count_retained' => $expenseCount], 200);

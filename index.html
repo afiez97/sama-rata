@@ -113,6 +113,11 @@
             <label for="select-expense-payer">Paid by</label>
             <select id="select-expense-payer" name="paid_by_member_id" required></select>
           </div>
+          <fieldset class="field">
+            <legend class="field-label">Split between</legend>
+            <div id="expense-participant-checkboxes" class="checkbox-list"></div>
+            <p id="expense-participant-error" class="field-error" hidden>Tick at least one person to split this with.</p>
+          </fieldset>
           <button type="submit" class="btn btn-primary btn-block">Add Expense</button>
         </form>
       </div>
