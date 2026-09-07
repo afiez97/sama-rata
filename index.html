@@ -198,14 +198,28 @@
       </div>
 
       <div class="panel-block">
-        <h2 class="panel-heading">Balances</h2>
-        <ul id="balance-list" class="balance-list"></ul>
+        <h2>
+          <button type="button" id="btn-toggle-balances" class="panel-heading disclosure-toggle" aria-expanded="false" aria-controls="balances-content">
+            <span>Balances</span>
+            <span class="disclosure-caret" aria-hidden="true">&#9662;</span>
+          </button>
+        </h2>
+        <div id="balances-content" class="disclosure-content" hidden>
+          <ul id="balance-list" class="balance-list"></ul>
+        </div>
       </div>
 
       <div class="panel-block">
-        <h2 class="panel-heading">Suggested Transfers</h2>
-        <ul id="transfer-list" class="transfer-list"></ul>
-        <p id="transfer-list-empty" class="empty-note" hidden>Everyone is settled up — no transfers needed.</p>
+        <h2>
+          <button type="button" id="btn-toggle-transfers" class="panel-heading disclosure-toggle" aria-expanded="false" aria-controls="transfers-content">
+            <span>Suggested Transfers</span>
+            <span class="disclosure-caret" aria-hidden="true">&#9662;</span>
+          </button>
+        </h2>
+        <div id="transfers-content" class="disclosure-content" hidden>
+          <ul id="transfer-list" class="transfer-list"></ul>
+          <p id="transfer-list-empty" class="empty-note" hidden>Everyone is settled up — no transfers needed.</p>
+        </div>
       </div>
 
     </section>

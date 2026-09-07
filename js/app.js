@@ -539,6 +539,22 @@ statusBannerDismiss.addEventListener('click', () => {
   dismissError();
 });
 
+// Collapsible Settle Up sections — collapsed by default (set in the HTML's
+// `hidden`/aria-expanded attributes) since Balances and Suggested Transfers
+// can run long and push everything else off-screen on mobile.
+function setupDisclosure(buttonId, contentId) {
+  const button = document.getElementById(buttonId);
+  const content = document.getElementById(contentId);
+  button.addEventListener('click', () => {
+    const isOpen = button.getAttribute('aria-expanded') === 'true';
+    button.setAttribute('aria-expanded', String(!isOpen));
+    content.hidden = isOpen;
+  });
+}
+
+setupDisclosure('btn-toggle-balances', 'balances-content');
+setupDisclosure('btn-toggle-transfers', 'transfers-content');
+
 const SYNC_DEBOUNCE_MS = 2000;
 let lastSyncAt = 0;
 
