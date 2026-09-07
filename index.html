@@ -132,8 +132,9 @@
       </div>
 
       <div id="add-expense-panel" class="panel-block">
-        <h2 class="panel-heading">Add an Expense</h2>
-        <form id="form-add-expense" class="stack-form">
+        <button type="button" id="btn-show-add-expense" class="btn btn-primary btn-block">+ Add Expense</button>
+        <form id="form-add-expense" class="stack-form" hidden>
+          <h2 class="panel-heading">Add an Expense</h2>
           <div class="field">
             <label for="input-expense-description">Description</label>
             <input type="text" id="input-expense-description" name="description" maxlength="140" placeholder="e.g. Dinner at the night market" autocomplete="off" required>
@@ -151,7 +152,10 @@
             <div id="expense-participant-checkboxes" class="checkbox-list"></div>
             <p id="expense-participant-error" class="field-error" hidden>Tick at least one person to split this with.</p>
           </fieldset>
-          <button type="submit" class="btn btn-primary btn-block">Add Expense</button>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Add Expense</button>
+            <button type="button" id="btn-cancel-add-expense" class="btn btn-secondary">Cancel</button>
+          </div>
         </form>
       </div>
 

@@ -49,6 +49,8 @@ const formAddMember = document.getElementById('form-add-member');
 const inputMemberName = document.getElementById('input-member-name');
 const memberChipList = document.getElementById('member-chip-list');
 
+const btnShowAddExpense = document.getElementById('btn-show-add-expense');
+const btnCancelAddExpense = document.getElementById('btn-cancel-add-expense');
 const formAddExpense = document.getElementById('form-add-expense');
 const inputExpenseDescription = document.getElementById('input-expense-description');
 const inputExpenseAmount = document.getElementById('input-expense-amount');
@@ -363,6 +365,16 @@ memberChipList.addEventListener('click', (e) => {
       reportError(err.message);
     }
   })();
+});
+
+btnShowAddExpense.addEventListener('click', () => {
+  btnShowAddExpense.hidden = true;
+  formAddExpense.hidden = false;
+});
+
+btnCancelAddExpense.addEventListener('click', () => {
+  formAddExpense.hidden = true;
+  btnShowAddExpense.hidden = false;
 });
 
 // Auto-ticks the payer as a participant when they're picked, per the app's
