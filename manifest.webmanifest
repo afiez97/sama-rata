@@ -1,0 +1,15 @@
+{
+  "name": "Sama Rata",
+  "short_name": "Sama Rata",
+  "description": "Split vacation expenses fairly with your group — no accounts, just a link.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "background_color": "#E7DCC3",
+  "theme_color": "#1B2A4A",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

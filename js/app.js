@@ -2,6 +2,7 @@ import { state, setTripState } from './state.js';
 import {
   renderApp,
   renderTabs,
+  renderTripsHistory,
   showError,
   clearError,
   openExpenseEditPanel,
@@ -19,6 +20,7 @@ import {
   deleteExpense,
   resetTrip,
 } from './api.js';
+import { forgetTrip } from './trips-history.js';
 
 const formStartTrip = document.getElementById('form-start-trip');
 const inputStartTripName = document.getElementById('input-start-trip-name');
@@ -32,6 +34,8 @@ const btnCopyLink = document.getElementById('btn-copy-link');
 const btnCopyCode = document.getElementById('btn-copy-code');
 const inputShareLink = document.getElementById('input-share-link');
 const tripCodeDisplay = document.getElementById('trip-code-display');
+
+const tripsHistoryList = document.getElementById('trips-history-list');
 
 const btnBackToStart = document.getElementById('btn-back-to-start');
 
@@ -162,6 +166,7 @@ async function loadInitialTrip(slug) {
       state.trip = null;
       state.members = [];
       state.expenses = [];
+      forgetTrip(slug);
       renderApp();
     } else {
       reportError(err.message);
@@ -265,6 +270,23 @@ btnCopyLink.addEventListener('click', () => {
 
 btnCopyCode.addEventListener('click', () => {
   void copyToClipboard(tripCodeDisplay.textContent, btnCopyCode, 'Copied!');
+});
+
+tripsHistoryList.addEventListener('click', (e) => {
+  const removeBtn = e.target.closest('.trips-history-remove');
+  if (removeBtn) {
+    forgetTrip(removeBtn.dataset.slug);
+    renderTripsHistory();
+    return;
+  }
+
+  const openBtn = e.target.closest('.trips-history-open');
+  if (openBtn) {
+    const slug = openBtn.dataset.slug;
+    state.slug = slug;
+    history.replaceState(null, '', `${location.pathname}?trip=${encodeURIComponent(slug)}`);
+    void loadInitialTrip(slug);
+  }
 });
 
 btnBackToStart.addEventListener('click', () => {
@@ -596,3 +618,9 @@ window.addEventListener('focus', () => {
 });
 
 boot();
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  });
+}

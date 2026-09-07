@@ -5,6 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sama Rata</title>
 <meta name="description" content="Split vacation expenses fairly with your group — no accounts, just a link.">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#1B2A4A">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sama Rata">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Special+Elite&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
@@ -47,6 +55,11 @@
       <p id="join-code-error" class="field-error" hidden></p>
       <button type="submit" class="btn btn-secondary btn-block">Join Trip</button>
     </form>
+
+    <div id="trips-history-block" class="ticket-card" hidden>
+      <h2 class="panel-heading">Your Trips</h2>
+      <ul id="trips-history-list" class="trips-history-list"></ul>
+    </div>
   </section>
 
   <section id="screen-not-found" class="screen screen-not-found is-hidden" aria-labelledby="screen-not-found-heading">

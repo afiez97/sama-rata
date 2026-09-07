@@ -201,6 +201,65 @@ h1, h2 {
   letter-spacing: 0.3em;
 }
 
+/* ---------- Your Trips history ---------- */
+.trips-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: left;
+}
+
+.trips-history-row {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.trips-history-open {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-start;
+  padding: var(--space-2) var(--space-3);
+  border: 2px solid var(--airmail-blue);
+  border-radius: var(--radius-sm);
+  background: var(--paper-light);
+  min-height: var(--tap);
+}
+
+.trips-history-open:hover {
+  background: rgba(61, 90, 128, 0.1);
+}
+
+.trips-history-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.trips-history-meta {
+  font-size: 0.8rem;
+  font-family: var(--font-mono);
+  opacity: 0.75;
+}
+
+.trips-history-remove {
+  width: var(--tap);
+  height: var(--tap);
+  border-radius: 50%;
+  flex-shrink: 0;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--stamp-red);
+}
+
+.trips-history-remove:hover {
+  background: rgba(178, 58, 72, 0.12);
+}
+
 /* ---------- Status banner ---------- */
 .status-banner {
   display: flex;

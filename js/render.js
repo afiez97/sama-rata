@@ -1,5 +1,6 @@
 import { state } from './state.js';
 import { computeSettlement, formatCents, balanceLabel } from './settlement.js';
+import { loadTripsHistory } from './trips-history.js';
 
 const screenStart = document.getElementById('screen-start');
 const screenNotFound = document.getElementById('screen-not-found');
@@ -12,6 +13,9 @@ const tripCodeDisplay = document.getElementById('trip-code-display');
 const shareLinkInput = document.getElementById('input-share-link');
 const qrCodeContainer = document.getElementById('trip-qr-code');
 let qrCode = null;
+
+const tripsHistoryBlock = document.getElementById('trips-history-block');
+const tripsHistoryList = document.getElementById('trips-history-list');
 
 const memberChipList = document.getElementById('member-chip-list');
 const memberChipListEmpty = document.getElementById('member-chip-list-empty');
@@ -74,6 +78,10 @@ export function renderApp(appState = state) {
   screenNotFound.classList.toggle('is-hidden', !notFound);
   screenTrip.classList.toggle('is-hidden', !hasTrip);
 
+  if (!hasTrip && !notFound) {
+    renderTripsHistory();
+  }
+
   if (hasTrip) {
     renderTripHeader(appState);
     renderShareInfo(appState);
@@ -113,6 +121,45 @@ export function renderShareInfo(appState = state) {
     });
   }
   qrCode.makeCode(shareLink);
+}
+
+// Renders the "Your Trips" list on the start screen from localStorage —
+// each trip this browser has created, joined, or opened via a shared link.
+export function renderTripsHistory() {
+  const trips = loadTripsHistory();
+  tripsHistoryBlock.hidden = trips.length === 0;
+
+  const rowNodes = trips.map((trip) => {
+    const li = document.createElement('li');
+    li.className = 'trips-history-row';
+
+    const openBtn = document.createElement('button');
+    openBtn.type = 'button';
+    openBtn.className = 'trips-history-open';
+    openBtn.dataset.slug = trip.slug;
+
+    const name = document.createElement('span');
+    name.className = 'trips-history-name';
+    name.textContent = trip.name || 'My Trip';
+
+    const meta = document.createElement('span');
+    meta.className = 'trips-history-meta';
+    meta.textContent = trip.joinCode ? `${trip.currency} · code ${trip.joinCode}` : trip.currency;
+
+    openBtn.append(name, meta);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'trips-history-remove';
+    removeBtn.dataset.slug = trip.slug;
+    removeBtn.setAttribute('aria-label', `Remove ${trip.name || 'this trip'} from your trips list`);
+    removeBtn.textContent = '×';
+
+    li.append(openBtn, removeBtn);
+    return li;
+  });
+
+  tripsHistoryList.replaceChildren(...rowNodes);
 }
 
 export function renderMemberChips(appState = state) {
