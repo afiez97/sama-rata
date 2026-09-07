@@ -8,6 +8,11 @@ const screenTrip = document.getElementById('screen-trip');
 const tripNameDisplay = document.getElementById('trip-name-display');
 const tripCurrencyDisplay = document.getElementById('trip-currency-display');
 
+const tripCodeDisplay = document.getElementById('trip-code-display');
+const shareLinkInput = document.getElementById('input-share-link');
+const qrCodeContainer = document.getElementById('trip-qr-code');
+let qrCode = null;
+
 const memberChipList = document.getElementById('member-chip-list');
 const memberChipListEmpty = document.getElementById('member-chip-list-empty');
 const payerSelect = document.getElementById('select-expense-payer');
@@ -71,6 +76,7 @@ export function renderApp(appState = state) {
 
   if (hasTrip) {
     renderTripHeader(appState);
+    renderShareInfo(appState);
     renderMemberChips(appState);
     renderExpenseParticipantCheckboxes(appState);
     renderExpenseList(appState);
@@ -84,6 +90,29 @@ export function renderTripHeader(appState = state) {
   if (!trip) return;
   tripNameDisplay.textContent = trip.name;
   tripCurrencyDisplay.textContent = trip.currency;
+}
+
+// Renders the invite panel: the shareable link (also encoded into the QR
+// code) and the 4-digit join code as a typing/reading-aloud fallback.
+export function renderShareInfo(appState = state) {
+  const { trip } = appState;
+  if (!trip) return;
+
+  const shareLink = `${location.origin}${location.pathname}?trip=${encodeURIComponent(trip.slug)}`;
+  shareLinkInput.value = shareLink;
+  tripCodeDisplay.textContent = trip.join_code;
+
+  if (typeof QRCode === 'undefined') return;
+  if (!qrCode) {
+    qrCode = new QRCode(qrCodeContainer, {
+      width: 120,
+      height: 120,
+      colorDark: '#1B2A4A',
+      colorLight: '#F3ECDA',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  }
+  qrCode.makeCode(shareLink);
 }
 
 export function renderMemberChips(appState = state) {

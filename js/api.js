@@ -39,6 +39,10 @@ export async function getTrip(slug) {
     return apiCall(`api/trip_get.php?slug=${encodeURIComponent(slug)}`);
 }
 
+export async function joinTripByCode(code) {
+    return apiCall('api/trip_join.php', { method: 'POST', body: { code } });
+}
+
 export async function updateTrip(slug, { name, currency }) {
     return apiCall('api/trip_update.php', { method: 'POST', body: { slug, name, currency } });
 }

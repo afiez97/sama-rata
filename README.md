@@ -2,7 +2,7 @@
 
 A mobile-first web app for splitting group vacation expenses. Anyone in the trip logs what they paid for and who it should be split between, and the app works out each person's balance and the minimum number of transfers to settle up.
 
-No accounts, no login. A trip lives at a link like `https://your-domain.com/?trip=a1b2c3d4e5` — anyone with that link can view and edit the same trip. The link itself is the only access control, so treat it like a shared secret and only send it to people on the trip.
+No accounts, no login. A trip lives at a link like `https://your-domain.com/?trip=a1b2c3d4e5` — anyone with that link can view and edit the same trip. People can join three ways: open the share link, scan its QR code, or type the trip's 4-digit code in on the start screen. All three lead to the same trip, so treat them like a shared secret and only hand them to people on the trip.
 
 ## How it works
 
@@ -33,6 +33,14 @@ mysql -u alhudaDev -p sama-rata < sql/migrations/001_add_expense_participants.sq
 ```
 
 This adds the new `expense_participants` table and backfills every existing expense to match the old "split among everyone" behavior, so your current Settle Up numbers don't change until you start ticking different people on new expenses.
+
+**Upgrading a deployment from before the trip-code / QR join feature?** Apply this migration too:
+
+```bash
+mysql -u alhudaDev -p sama-rata < sql/migrations/002_add_join_code.sql
+```
+
+This adds the `join_code` column (backfilled with a random 4-digit code per existing trip) and the `join_code_attempts` table used to rate-limit code lookups.
 
 ## 2. Configure the app
 
@@ -88,7 +96,11 @@ server {
 
 ## 4. Share a trip
 
-Open the site with no `?trip=` — it'll show a "start a trip" screen. Once created, the address bar becomes something like `your-domain.com/?trip=a1b2c3d4e5`. Copy that URL and send it to everyone on the trip; anyone who opens it sees and can edit the same data.
+Open the site with no `?trip=` — it'll show a "start a trip" screen. Once created, the address bar becomes something like `your-domain.com/?trip=a1b2c3d4e5`, and the trip screen's "Invite Others" panel gives you three ways to bring people in:
+
+- **Share link** — copy the URL and send it; anyone who opens it sees and can edit the same data.
+- **QR code** — shown right in the panel; anyone who scans it opens the same link.
+- **Trip code** — a 4-digit code (e.g. `4821`) for when a link or QR isn't convenient. Anyone can type it into the "Have a trip code?" field on the start screen to jump straight into the trip.
 
 ## Project layout
 
@@ -96,6 +108,7 @@ Open the site with no `?trip=` — it'll show a "start a trip" screen. Once crea
 index.html            static shell, no server templating
 css/style.css          passport-stamp visual theme
 js/                    vanilla ES modules (state, api, settlement math, rendering, app wiring)
+js/vendor/qrcode.js     vendored QR code generator (MIT, no dependencies) — renders the invite QR
 api/*.php              PHP + PDO/MySQL backend, one file per endpoint
 api/config.php          your real DB credentials (gitignored, create this yourself)
 api/config.example.php   placeholder credentials, committed as a template
@@ -108,4 +121,5 @@ sql/migrations/          incremental migrations for existing deployments
 - Every database query uses prepared statements — no SQL injection surface.
 - Every write is scoped to the trip's own rows — one trip's link can't be used to tamper with another trip's data.
 - The trip slug (the part after `?trip=`) is generated from 40 bits of randomness — treat it like a password: don't post it somewhere public if you don't want strangers editing the trip.
-- There's no rate limiting built in. If you're deploying somewhere public-facing long-term, consider adding basic rate limiting at the web server level for the `api/` path.
+- The 4-digit trip code trades some of that safety for convenience — it only has 10,000 possible values, so it's guessable in a way the slug isn't. The join-by-code endpoint (`api/trip_join.php`) throttles lookups per requester (15 attempts per 5 minutes) to blunt casual scanning, but a determined attacker spreading guesses across many IPs could still eventually find an active trip's code. Treat the code the same way as the link: share it only with people on the trip, and don't post it somewhere public.
+- Rate limiting is only in place for the trip-code lookup. If you're deploying somewhere public-facing long-term, consider adding rate limiting at the web server level for the rest of the `api/` path too.

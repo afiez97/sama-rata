@@ -10,6 +10,7 @@ import {
 import {
   createTrip,
   getTrip,
+  joinTripByCode,
   updateTrip,
   addMember,
   removeMember,
@@ -22,6 +23,15 @@ import {
 const formStartTrip = document.getElementById('form-start-trip');
 const inputStartTripName = document.getElementById('input-start-trip-name');
 const inputStartTripCurrency = document.getElementById('input-start-trip-currency');
+
+const formJoinTrip = document.getElementById('form-join-trip');
+const inputJoinCode = document.getElementById('input-join-code');
+const joinCodeError = document.getElementById('join-code-error');
+
+const btnCopyLink = document.getElementById('btn-copy-link');
+const btnCopyCode = document.getElementById('btn-copy-code');
+const inputShareLink = document.getElementById('input-share-link');
+const tripCodeDisplay = document.getElementById('trip-code-display');
 
 const btnBackToStart = document.getElementById('btn-back-to-start');
 
@@ -191,6 +201,68 @@ formStartTrip.addEventListener('submit', async (e) => {
       reportError(err.message);
     }
   });
+});
+
+function showJoinCodeError(message) {
+  joinCodeError.textContent = message;
+  joinCodeError.hidden = false;
+}
+
+function hideJoinCodeError() {
+  joinCodeError.textContent = '';
+  joinCodeError.hidden = true;
+}
+
+inputJoinCode.addEventListener('input', () => {
+  inputJoinCode.value = inputJoinCode.value.replace(/\D/g, '').slice(0, 4);
+});
+
+formJoinTrip.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const code = inputJoinCode.value.trim();
+  hideJoinCodeError();
+  if (!/^\d{4}$/.test(code)) {
+    showJoinCodeError('Enter the 4-digit trip code.');
+    return;
+  }
+
+  const submitBtn = formJoinTrip.querySelector('button[type="submit"]');
+  await runMutation(submitBtn, async () => {
+    try {
+      const data = await joinTripByCode(code);
+      state.slug = data.trip.slug;
+      setTripState(data);
+      dismissError();
+      inputJoinCode.value = '';
+      history.replaceState(null, '', `${location.pathname}?trip=${encodeURIComponent(state.slug)}`);
+      renderApp();
+    } catch (err) {
+      showJoinCodeError(err.message);
+    }
+  });
+});
+
+// Swaps a button's label to a brief "Copied!" confirmation, then restores
+// it — same pattern for both the link and code copy buttons below.
+async function copyToClipboard(text, button, copiedLabel) {
+  const originalLabel = button.textContent;
+  try {
+    await navigator.clipboard.writeText(text);
+    button.textContent = copiedLabel;
+  } catch {
+    button.textContent = 'Copy failed';
+  }
+  setTimeout(() => {
+    button.textContent = originalLabel;
+  }, 1500);
+}
+
+btnCopyLink.addEventListener('click', () => {
+  void copyToClipboard(inputShareLink.value, btnCopyLink, 'Copied!');
+});
+
+btnCopyCode.addEventListener('click', () => {
+  void copyToClipboard(tripCodeDisplay.textContent, btnCopyCode, 'Copied!');
 });
 
 btnBackToStart.addEventListener('click', () => {

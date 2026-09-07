@@ -171,6 +171,36 @@ h1, h2 {
   max-width: 38ch;
 }
 
+/* ---------- Start screen divider ---------- */
+.screen-divider {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  color: var(--charcoal-ink);
+  opacity: 0.6;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.screen-divider::before,
+.screen-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--airmail-blue);
+  opacity: 0.4;
+}
+
+.code-input {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+}
+
 /* ---------- Status banner ---------- */
 .status-banner {
   display: flex;
@@ -315,6 +345,61 @@ h1, h2 {
 .trip-header-actions {
   display: flex;
   gap: var(--space-2);
+}
+
+/* ---------- Invite / share panel ---------- */
+.share-tagline {
+  opacity: 0.75;
+  text-align: left;
+  max-width: none;
+  margin-bottom: var(--space-3);
+}
+
+.share-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.qr-code {
+  flex-shrink: 0;
+  line-height: 0;
+  border: 2px solid var(--ink-navy);
+  border-radius: var(--radius-sm);
+  padding: var(--space-2);
+  background: var(--paper-light);
+}
+
+.qr-code img,
+.qr-code canvas {
+  display: block;
+}
+
+.share-code-block {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.share-code-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-navy);
+}
+
+.share-code-display {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  color: var(--ink-navy);
+}
+
+.btn-copy {
+  align-self: flex-start;
 }
 
 /* ---------- Buttons ---------- */

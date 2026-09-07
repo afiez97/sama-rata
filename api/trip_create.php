@@ -11,9 +11,10 @@ try {
     $currency = optional_string_field($body, 'currency', 'RM', 8);
 
     $slug = generate_slug($pdo);
+    $joinCode = generate_join_code($pdo);
 
-    $stmt = $pdo->prepare('INSERT INTO trips (slug, name, currency) VALUES (?, ?, ?)');
-    $stmt->execute([$slug, $name, $currency]);
+    $stmt = $pdo->prepare('INSERT INTO trips (slug, join_code, name, currency) VALUES (?, ?, ?, ?)');
+    $stmt->execute([$slug, $joinCode, $name, $currency]);
     $tripId = (int) $pdo->lastInsertId();
 
     $stmt = $pdo->prepare('SELECT * FROM trips WHERE id = ?');

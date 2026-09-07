@@ -42,6 +42,52 @@ function generate_slug(PDO $pdo): string {
     json_error('slug_generation_failed', 'Could not create a trip link, please try again.', 500);
 }
 
+function valid_join_code_format(string $code): bool {
+    return (bool) preg_match('/^[0-9]{4}$/', $code);
+}
+
+/** Random 4-digit join code (0000-9999), re-rolled on the rare collision. */
+function generate_join_code(PDO $pdo): string {
+    for ($i = 0; $i < 5; $i++) {
+        $code = str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT);
+        $stmt = $pdo->prepare('SELECT COUNT(*) FROM trips WHERE join_code = ?');
+        $stmt->execute([$code]);
+        if ((int) $stmt->fetchColumn() === 0) {
+            return $code;
+        }
+    }
+    json_error('code_generation_failed', 'Could not create a trip code, please try again.', 500);
+}
+
+// A 4-digit code only has 10,000 possible values, so the join-by-code
+// endpoint throttles lookups per requester rather than relying on the
+// code space alone. Window/cap are generous for a group of friends
+// retyping a code, but cheap for a scanner to blow through in seconds.
+const JOIN_CODE_RATE_LIMIT_WINDOW_MINUTES = 5;
+const JOIN_CODE_RATE_LIMIT_MAX_ATTEMPTS = 15;
+
+/** Rejects with 429 once too many join-code lookups have come from this requester recently; otherwise logs this attempt. */
+function enforce_join_rate_limit(PDO $pdo): void {
+    $ipHash = hash('sha256', $_SERVER['REMOTE_ADDR'] ?? '');
+
+    $stmt = $pdo->prepare(
+        'SELECT COUNT(*) FROM join_code_attempts
+         WHERE ip_hash = ? AND created_at > (NOW() - INTERVAL ? MINUTE)'
+    );
+    $stmt->execute([$ipHash, JOIN_CODE_RATE_LIMIT_WINDOW_MINUTES]);
+    if ((int) $stmt->fetchColumn() >= JOIN_CODE_RATE_LIMIT_MAX_ATTEMPTS) {
+        json_error('rate_limited', 'Too many attempts. Please wait a few minutes and try again.', 429);
+    }
+
+    $stmt = $pdo->prepare('INSERT INTO join_code_attempts (ip_hash) VALUES (?)');
+    $stmt->execute([$ipHash]);
+
+    // Opportunistic cleanup so the table doesn't grow forever — no cron needed.
+    if (random_int(1, 100) === 1) {
+        $pdo->exec('DELETE FROM join_code_attempts WHERE created_at < (NOW() - INTERVAL 1 HOUR)');
+    }
+}
+
 /** Returns the trip row for an already-format-validated slug, or null if unknown. */
 function resolve_trip(PDO $pdo, string $slug): ?array {
     $stmt = $pdo->prepare('SELECT * FROM trips WHERE slug = ?');
@@ -192,6 +238,7 @@ function fetch_trip_state(PDO $pdo, array $trip): array {
     return [
         'trip' => [
             'slug' => $trip['slug'],
+            'join_code' => $trip['join_code'],
             'name' => $trip['name'],
             'currency' => $trip['currency'],
             'created_at' => $trip['created_at'],
