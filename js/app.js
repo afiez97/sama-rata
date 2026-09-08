@@ -434,6 +434,8 @@ formAddExpense.addEventListener('submit', async (e) => {
       await addExpense(state.slug, { description, amount, paidByMemberId, participantIds });
       inputExpenseDescription.value = '';
       inputExpenseAmount.value = '';
+      formAddExpense.hidden = true;
+      btnShowAddExpense.hidden = false;
       await refreshTrip();
     } catch (err) {
       reportError(err.message);
