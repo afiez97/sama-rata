@@ -2,7 +2,10 @@
 // while traveling is the whole reason this matters). Trip data itself is
 // never cached — every "/api/" request always goes straight to the network,
 // so nobody ever sees stale balances.
-const CACHE_VERSION = 'sama-rata-shell-v2';
+// Bump this string whenever index.html/css/js changes — it's the only thing
+// that makes the browser notice sw.js differs and refresh the cached shell.
+// Skip it and installed PWAs silently keep running old JS indefinitely.
+const CACHE_VERSION = 'sama-rata-shell-v3';
 const APP_SHELL = [
   '.',
   'index.html',
