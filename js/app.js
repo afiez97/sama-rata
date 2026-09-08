@@ -21,6 +21,7 @@ import {
   resetTrip,
 } from './api.js';
 import { forgetTrip } from './trips-history.js';
+import { initInstallBanner, promptInstall, isStandalone } from './install-prompt.js';
 
 const formStartTrip = document.getElementById('form-start-trip');
 const inputStartTripName = document.getElementById('input-start-trip-name');
@@ -618,6 +619,27 @@ window.addEventListener('focus', () => {
 });
 
 boot();
+initInstallBanner();
+
+const btnInstallStart = document.getElementById('btn-install-start');
+const installStartHint = document.getElementById('install-start-hint');
+
+if (!isStandalone()) {
+  btnInstallStart.hidden = false;
+}
+
+btnInstallStart.addEventListener('click', async () => {
+  const result = await promptInstall();
+  if (result === 'ios') {
+    installStartHint.textContent = 'Tap the Share icon, then "Add to Home Screen".';
+    installStartHint.hidden = false;
+  } else if (result === 'unavailable') {
+    installStartHint.textContent = 'Look for "Install App" or "Add to Home Screen" in your browser\'s menu.';
+    installStartHint.hidden = false;
+  } else {
+    installStartHint.hidden = true;
+  }
+});
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

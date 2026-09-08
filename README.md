@@ -14,6 +14,7 @@ No accounts, no login. A trip lives at a link like `https://your-domain.com/?tri
 - **Reset Trip** clears all expenses and members but keeps the same link alive, so you can reuse it.
 - **Your Trips**: every trip this browser creates, joins, or opens gets remembered in `localStorage`, and shows up as a list on the start screen so you don't have to hang on to the link or code yourself. It's purely local — nothing here is sent to the server or visible to anyone else — so it won't show up on a different browser/device, and clearing site data clears it too.
 - **Installable, works offline for the UI shell**: the app is an installable PWA (manifest + service worker) — "Add to Home Screen" on mobile gives it its own icon and a standalone window. The service worker only caches the static shell (HTML/CSS/JS/icons), never trip data, so the app still opens with no signal, but expenses/balances still need a connection to load or save.
+- **Install banner + button**: no browser lets a page install itself automatically — not even from a QR scan — so the start screen always shows an "Install App" button, and a dismissible banner also appears on its own once the browser signals the page is installable. On Chrome/Edge/Android both trigger the real one-tap native install prompt; on iOS Safari (which has no install API at all) both show the manual "tap Share, then Add to Home Screen" steps instead. Dismissing the banner, or installing, is remembered in `localStorage` so the banner doesn't nag again — the start screen button stays put either way.
 
 ## 1. Set up the database
 
@@ -112,6 +113,7 @@ css/style.css          passport-stamp visual theme
 js/                    vanilla ES modules (state, api, settlement math, rendering, app wiring)
 js/vendor/qrcode.js     vendored QR code generator (MIT, no dependencies) — renders the invite QR
 js/trips-history.js     localStorage "Your Trips" list — local-only, never touches the server
+js/install-prompt.js    "Install App" banner — real prompt on Chrome/Android, instructions on iOS Safari
 manifest.webmanifest   PWA manifest (name, icons, standalone display)
 sw.js                  service worker — caches the static app shell for offline use, never trip data
 icons/                 app icons (favicon, apple-touch-icon, PWA icon + maskable variant)

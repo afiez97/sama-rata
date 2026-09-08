@@ -26,12 +26,23 @@
     <button type="button" id="status-banner-dismiss" class="status-banner-dismiss" aria-label="Dismiss message">&times;</button>
   </div>
 
+  <div id="install-banner" class="install-banner" role="status" aria-live="polite" hidden>
+    <span id="install-banner-message" class="install-banner-message"></span>
+    <div class="install-banner-actions">
+      <button type="button" id="btn-install-app" class="btn btn-brass" hidden>Install</button>
+      <button type="button" id="install-banner-dismiss" class="install-banner-dismiss" aria-label="Dismiss">&times;</button>
+    </div>
+  </div>
+
   <section id="screen-start" class="screen screen-start is-hidden" aria-labelledby="screen-start-heading">
     <div class="stamp-badge stamp-badge-lg" aria-hidden="true">
       <span class="stamp-badge-text">Sama&nbsp;Rata</span>
     </div>
     <h1 id="screen-start-heading" class="screen-heading">Start a Trip</h1>
     <p class="screen-tagline">Split vacation costs fairly with your group. No sign-up — just a link you share.</p>
+
+    <button type="button" id="btn-install-start" class="btn btn-secondary btn-block" hidden>Install App</button>
+    <p id="install-start-hint" class="empty-note" hidden></p>
 
     <form id="form-start-trip" class="ticket-card stack-form" novalidate>
       <div class="field">

@@ -2,7 +2,7 @@
 // while traveling is the whole reason this matters). Trip data itself is
 // never cached — every "/api/" request always goes straight to the network,
 // so nobody ever sees stale balances.
-const CACHE_VERSION = 'sama-rata-shell-v1';
+const CACHE_VERSION = 'sama-rata-shell-v2';
 const APP_SHELL = [
   '.',
   'index.html',
@@ -13,6 +13,7 @@ const APP_SHELL = [
   'js/render.js',
   'js/app.js',
   'js/trips-history.js',
+  'js/install-prompt.js',
   'js/vendor/qrcode.js',
   'manifest.webmanifest',
   'icons/icon-192.png',
