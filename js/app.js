@@ -39,6 +39,7 @@ const tripCodeDisplay = document.getElementById('trip-code-display');
 const tripsHistoryList = document.getElementById('trips-history-list');
 
 const btnBackToStart = document.getElementById('btn-back-to-start');
+const btnGoHome = document.getElementById('btn-go-home');
 
 const btnEditTrip = document.getElementById('btn-edit-trip');
 const btnRefresh = document.getElementById('btn-refresh');
@@ -290,7 +291,7 @@ tripsHistoryList.addEventListener('click', (e) => {
   }
 });
 
-btnBackToStart.addEventListener('click', () => {
+function goToStartScreen() {
   state.slug = null;
   state.trip = null;
   state.members = [];
@@ -298,7 +299,10 @@ btnBackToStart.addEventListener('click', () => {
   dismissError();
   history.replaceState(null, '', location.pathname);
   renderApp();
-});
+}
+
+btnBackToStart.addEventListener('click', goToStartScreen);
+btnGoHome.addEventListener('click', goToStartScreen);
 
 btnEditTrip.addEventListener('click', () => {
   const opening = formEditTrip.hidden;
